@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Ejecutar el script 03_Configuracion_del_Sistema.sh
+echo "Ejecutando 03_Configuracion_del_Sistema.sh..."
+./03_Configuracion_del_Sistema.sh
+
+# Verificar si el script anterior se ejecutó correctamente
+if [ $? -ne 0 ]; then
+    echo "El script 03_Configuracion_del_Sistema.sh falló. Abortando."
+    exit 1
+fi
+
+# Ejecutar el script 04_Programas_necesarios.sh
+echo "Ejecutando 04_Programas_necesarios.sh..."
+./04_Programas_necesarios.sh
+
+# Verificar si el script anterior se ejecutó correctamente
+if [ $? -ne 0 ]; then
+    echo "El script 04_Programas_necesarios.sh falló. Abortando."
+    exit 1
+fi
+
+# Ejecutar el script 05_Instalación_de_Grub.sh
+echo "Ejecutando 05_Instalación_de_Grub.sh..."
+./05_Instalación_de_Grub.sh
+
+# Verificar si el script anterior se ejecutó correctamente
+if [ $? -ne 0 ]; then
+    echo "El script 05_Instalación_de_Grub.sh falló. Abortando."
+    exit 1
+fi
+
+# Ejecutar el script 06_Personalizacion_de_Pacman.sh
+echo "Ejecutando 06_Personalizacion_de_Pacman.sh..."
+./06_Personalizacion_de_Pacman.sh
+
+# Verificar si el script anterior se ejecutó correctamente
+if [ $? -ne 0 ]; then
+    echo "El script 06_Personalizacion_de_Pacman.sh falló. Abortando."
+    exit 1
+fi
+
+# Ejecutar el script 07_Herramientas_Extra.sh
+echo "Ejecutando 07_Herramientas_Extra.sh..."
+./07_Herramientas_Extra.sh
+
+# Verificar si el script anterior se ejecutó correctamente
+if [ $? -ne 0 ]; then
+    echo "El script 07_Herramientas_Extra.sh falló. Abortando."
+    exit 1
+fi
+
+echo "Todos los scripts se ejecutaron correctamente."
