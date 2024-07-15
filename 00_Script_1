@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Ejecutar el script 01_Preparar_HD.sh
+echo "Ejecutando 01_Preparar_HD.sh..."
+./01_Preparar_HD.sh
+
+# Verificar si el script anterior se ejecutó correctamente
+if [ $? -ne 0 ]; then
+    echo "El script 01_Preparar_HD.sh falló. Abortando."
+    exit 1
+fi
+
+# Ejecutar el script 02_Instalación_base.sh
+echo "Ejecutando 02_Instalación_base.sh..."
+./02_Instalación_base.sh
+
+# Verificar si el script anterior se ejecutó correctamente
+if [ $? -ne 0 ]; then
+    echo "El script 02_Instalación_base.sh falló. Abortando."
+    exit 1
+fi
+
+echo "Todos los scripts se ejecutaron correctamente."
