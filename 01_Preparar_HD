@@ -9,6 +9,12 @@ fi
 
 DEVICE=$1
 
+# Validar que el dispositivo existe
+if [ ! -b "$DEVICE" ]; then
+    echo "El dispositivo $DEVICE no existe o no es un bloque válido."
+    exit 1
+fi
+
 # Confirmar antes de proceder
 read -p "Esto borrará todos los datos en $DEVICE. ¿Estás seguro? (escribe 'SI' para continuar): " CONFIRM
 if [ "$CONFIRM" != "SI" ]; then
@@ -17,33 +23,42 @@ if [ "$CONFIRM" != "SI" ]; then
 fi
 
 # Limpiar la tabla de particiones existente
-sudo parted $DEVICE mklabel gpt
+sudo parted -s $DEVICE mklabel gpt
 
 # Crear la partición FAT32 de 300MB
-sudo parted -a optimal $DEVICE mkpart primary fat32 0% 300MB
-sudo parted $DEVICE set 1 boot on
+sudo parted -s -a optimal $DEVICE mkpart primary fat32 0% 300MB
+sudo parted -s $DEVICE set 1 boot on
 
 # Crear la partición root del 30%
-sudo parted -a optimal $DEVICE mkpart primary ext4 300MB 30%
+sudo parted -s -a optimal $DEVICE mkpart primary ext4 300MB 30%
 
 # Crear la partición home del 30%
-sudo parted -a optimal $DEVICE mkpart primary ext4 30% 60%
+sudo parted -s -a optimal $DEVICE mkpart primary ext4 30% 60%
 
 # Crear la partición almacén con el resto del espacio
-sudo parted -a optimal $DEVICE mkpart primary ext4 60% 100%
+sudo parted -s -a optimal $DEVICE mkpart primary ext4 60% 100%
 
 # Formatear las particiones
+echo "Formateando las particiones..."
 sudo mkfs.vfat -F 32 ${DEVICE}1
 sudo mkfs.ext4 ${DEVICE}2
 sudo mkfs.ext4 ${DEVICE}3
 sudo mkfs.ext4 ${DEVICE}4
 
+# Montar las particiones
+echo "Montando las particiones..."
+sudo mount ${DEVICE}2 /mnt/
+sudo mkdir -p /mnt/boot/efi/
+sudo mount ${DEVICE}1 /mnt/boot/efi/
+sudo mkdir -p /mnt/home /mnt/box/
+sudo mount ${DEVICE}3 /mnt/home/
+sudo mount ${DEVICE}4 /mnt/box/
+
 echo "Particiones y formateo completados en $DEVICE:"
 sudo parted $DEVICE print
 
-# Mostrar instrucciones para montar las particiones
-echo "Las particiones han sido creadas y formateadas. Para montar las particiones, puedes usar los siguientes comandos:"
-echo "sudo mount ${DEVICE}2 /mnt"
-echo "sudo mkdir -p /mnt/home /mnt/almacen"
-echo "sudo mount ${DEVICE}3 /mnt/home"
-echo "sudo mount ${DEVICE}4 /mnt/almacen"
+echo "Las particiones han sido creadas, formateadas y montadas:"
+echo "/mnt         -> ${DEVICE}2 (root)"
+echo "/mnt/boot/efi -> ${DEVICE}1 (boot)"
+echo "/mnt/home    -> ${DEVICE}3 (home)"
+echo "/mnt/almacen -> ${DEVICE}4 (almacen)"
