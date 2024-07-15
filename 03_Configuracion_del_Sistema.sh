@@ -5,22 +5,6 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo "Generando fstab..."
-genfstab -p /mnt >> /mnt/etc/fstab
-if [ $? -ne 0 ]; then
-  echo "Error al generar fstab."
-  exit 1
-fi
-echo "fstab generado correctamente."
-
-echo "Iniciando arch-chroot"
-arch-chroot /mnt
-if [ $? -ne 0 ]; then
-  echo "Error en el entorno arch-chroot."
-  exit 1
-fi
-echo "arch-chroot completado correctamente."
-
 echo 'Modificando el idioma en /etc/locale.gen...'
 sed -i 's/^#\(es_ES.UTF-8 UTF-8\)/\1/' /etc/locale.gen
 if [ \$? -ne 0 ]; then
