@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Instalar paquetes git y wget
+echo "Instalando paquetes git y wget..."
+sudo pacman -S --noconfirm git wget
+
+# Instalar paquetes necesarios para paru
+echo "Instalando paquetes base-devel necesarios para paru..."
+sudo pacman -S --needed --noconfirm base-devel
+
+# Clonar y construir paru desde AUR
+echo "Clonando el repositorio de paru..."
+git clone https://aur.archlinux.org/paru.git
+
+echo "Entrando en el directorio de paru..."
+cd paru
+
+echo "Construyendo e instalando paru..."
+makepkg -si --noconfirm
+
+# Volver al directorio original
+cd ..
+
+echo "Eliminando el directorio de paru..."
+rm -rf paru
+
+echo "Instalación completada exitosamente."
