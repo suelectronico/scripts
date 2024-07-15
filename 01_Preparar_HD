@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Comprobar si se ha especificado el dispositivo como argumento
+if [ -z "$1" ]; then
+    echo "Uso: $0 <dispositivo>"
+    echo "Ejemplo: $0 /dev/sdX"
+    exit 1
+fi
+
+DEVICE=$1
+
+# Confirmar antes de proceder
+read -p "Esto borrará todos los datos en $DEVICE. ¿Estás seguro? (escribe 'SI' para continuar): " CONFIRM
+if [ "$CONFIRM" != "SI" ]; then
+    echo "Operación cancelada."
+    exit 1
+fi
+
+# Limpiar la tabla de particiones existente
+sudo parted $DEVICE mklabel gpt
+
+# Crear la partición FAT32 de 300MB
+sudo parted -a optimal $DEVICE mkpart primary fat32 0% 300MB
+sudo parted $DEVICE set 1 boot on
+
+# Crear la partición root del 30%
+sudo parted -a optimal $DEVICE mkpart primary ext4 300MB 30%
+
+# Crear la partición home del 30%
+sudo parted -a optimal $DEVICE mkpart primary ext4 30% 60%
+
+# Crear la partición almacén con el resto del espacio
+sudo parted -a optimal $DEVICE mkpart primary ext4 60% 100%
+
+# Formatear las particiones
+sudo mkfs.vfat -F 32 ${DEVICE}1
+sudo mkfs.ext4 ${DEVICE}2
+sudo mkfs.ext4 ${DEVICE}3
+sudo mkfs.ext4 ${DEVICE}4
+
+echo "Particiones y formateo completados en $DEVICE:"
+sudo parted $DEVICE print
+
+# Mostrar instrucciones para montar las particiones
+echo "Las particiones han sido creadas y formateadas. Para montar las particiones, puedes usar los siguientes comandos:"
+echo "sudo mount ${DEVICE}2 /mnt"
+echo "sudo mkdir -p /mnt/home /mnt/almacen"
+echo "sudo mount ${DEVICE}3 /mnt/home"
+echo "sudo mount ${DEVICE}4 /mnt/almacen"
