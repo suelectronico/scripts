@@ -16,3 +16,20 @@ else
   echo "Error al ejecutar los comandos."
   exit 1
 fi
+echo "Instalación de archivos base correcta..."
+
+echo "Generando fstab..."
+genfstab -p /mnt >> /mnt/etc/fstab
+if [ $? -ne 0 ]; then
+  echo "Error al generar fstab."
+  exit 1
+fi
+echo "fstab generado correctamente."
+
+echo "Iniciando arch-chroot"
+arch-chroot /mnt
+if [ $? -ne 0 ]; then
+  echo "Error en el entorno arch-chroot."
+  exit 1
+fi
+echo "arch-chroot completado correctamente."
