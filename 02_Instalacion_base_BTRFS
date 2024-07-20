@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Actualizar el sistema
+pacman -Syu --noconfirm
+
+# Variables
+TARGET_DIR="/mnt"
+DISK="/dev/sdX"  # Reemplaza con el disco correcto (ej. /dev/sda)
+
+# 1. Paquetes base y kernel
+echo "Instalando paquetes base y kernel..."
+pacstrap $TARGET_DIR base base-devel linux linux-firmware linux-headers
+
+# 2. Paquetes específicos para el hardware
+
+# Detectar procesador
+cpu=$(lscpu | grep "Vendor ID" | awk '{print $3}')
+echo "Detectando procesador..."
+if [[ $cpu == "AuthenticAMD" ]]; then
+    echo "Procesador AMD detectado"
+    pacstrap $TARGET_DIR amd-ucode
+elif [[ $cpu == "GenuineIntel" ]]; then
+    echo "Procesador Intel detectado"
+    pacstrap $TARGET_DIR intel-ucode
+else
+    echo "Procesador no reconocido, omitiendo instalación de microcode."
+fi
+
+# Detectar gráfica
+echo "Detectando gráfica..."
+gpu=$(lspci | grep -i "VGA compatible controller" | awk -F ': ' '{print $2}' | awk '{print $1}')
+if [[ $gpu == "NVIDIA" ]]; then
+    echo "Gráfica NVIDIA detectada"
+    echo "Selecciona el tipo de controladores NVIDIA:"
+    echo "1. Libres (Nouveau)"
+    echo "2. Propietarios (NVIDIA)"
+    read -p "Introduce 1 o 2: " nvidia_choice
+    if [ "$nvidia_choice" == "1" ]; then
+        pacstrap $TARGET_DIR xf86-video-nouveau
+    elif [ "$nvidia_choice" == "2" ]; then
+        pacstrap $TARGET_DIR nvidia nvidia-utils
+    else
+        echo "Opción no válida, omitiendo instalación de controladores NVIDIA."
+    fi
+elif [[ $gpu == "AMD" ]]; then
+    echo "Gráfica AMD detectada"
+    pacstrap $TARGET_DIR xf86-video-amdgpu
+elif [[ $gpu == "Intel" ]]; then
+    echo "Gráfica Intel detectada"
+    pacstrap $TARGET_DIR xf86-video-intel
+else
+    echo "Gráfica no reconocida, omitiendo instalación de drivers."
+fi
+
+# 3. Paquetes específicos para el sistema de archivos
+
+# Detectar sistema de archivos
+echo "Detectando sistema de archivos..."
+filesystem=$(blkid -s TYPE -o value ${DISK}1)  # Suponiendo que la partición de raíz es ${DISK}1
+case $filesystem in
+    btrfs)
+        echo "Sistema de archivos Btrfs detectado"
+        pacstrap $TARGET_DIR btrfs-progs
+        ;;
+    ext4)
+        echo "Sistema de archivos Ext4 detectado"
+        pacstrap $TARGET_DIR e2fsprogs
+        ;;
+    xfs)
+        echo "Sistema de archivos XFS detectado"
+        pacstrap $TARGET_DIR xfsprogs
+        ;;
+    *)
+        echo "Sistema de archivos $filesystem detectado, no se instalarán paquetes adicionales específicos."
+        ;;
+esac
+
+# 4. Paquetes para el sistema de arranque
+echo "Instalando paquetes para el sistema de arranque..."
+pacstrap $TARGET_DIR grub efibootmgr
+
+# 5. Aplicaciones TUI
+echo "Instalando aplicaciones TUI..."
+pacstrap $TARGET_DIR neovim
+
+# 6. Aplicaciones GUI
+echo "Instalando aplicaciones GUI..."
+pacstrap $TARGET_DIR firefox
+
+# 7. Instalación de hyprland
+echo "Instalando hyprland y dependencias..."
+pacstrap $TARGET_DIR hyprland
+
+echo "Instalación completada. Ahora puedes chrootear al sistema y continuar con la configuración."
+
+echo "Para chrootear al nuevo sistema, ejecuta:"
+echo "arch-chroot /mnt"
