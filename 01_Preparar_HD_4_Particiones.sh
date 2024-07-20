@@ -68,3 +68,11 @@ echo "/mnt/boot/efi -> ${DEVICE}1 (boot)"
 echo "/mnt/home    -> ${DEVICE}3 (home)"
 echo "/mnt/almacen -> ${DEVICE}4 (almacen)"
 echo "/mnt/almacen -> ${DEVICE}4 (maquinas virtuales)"
+
+echo "Generando fstab..."
+genfstab -p /mnt >> /mnt/etc/fstab
+if [ $? -ne 0 ]; then
+  echo "Error al generar fstab."
+  exit 1
+fi
+echo "fstab generado correctamente."
